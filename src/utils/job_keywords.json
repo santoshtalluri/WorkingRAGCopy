@@ -1,0 +1,13 @@
+{
+    "job_description": ["Job Description", "About the Role", "What You’ll Do", "About the job", "Responsibilities"],
+    "required_skills": ["Skills", "Requirements", "Must Have", "Minimum qualifications", "Preferred qualifications", "Tech Stack", "Tools & Technologies"],
+    "location": ["Location", "Workplace", "Remote", "Hybrid", "Onsite"],
+    "pay_range": ["Pay", "Compensation", "Salary", "Hourly Rate"],
+    "experience": ["Experience", "Years of Experience", "Work Experience"],
+    "education": ["Education", "Qualifications", "Academic Background"],
+    "immigration_support": ["Visa", "Sponsorship", "Immigration Support"]
+    "city_names": [ "New York", "San Francisco", "Los Angeles", "Chicago", "Austin", "Seattle", "Boston", "Houston", "Atlanta", "Denver", "Dallas", "San Diego", "San Jose", "Charlotte", "Miami", "Portland", "Orlando", "Phoenix", "Las Vegas", "Remote", "Hybrid"]
+}
+
+
+  

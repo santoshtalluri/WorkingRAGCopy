@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Resume App</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<header>
+    <h1>📄 RAG Resume App</h1>
+</header>
+
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab-button active" id="simple-ai-tab">Simple AI Search</button>
+    <button class="tab-button" id="resume-analyzer-tab">Resume Analyzer</button>
+</div>
+
+<div class="container">
+
+    <!-- Simple AI Search Section -->
+    <div id="simple-ai-search" class="tab-content active">
+        <h2>📚 Files Used in Current Model</h2>
+        <ul id="file-list"></ul>
+
+        <h2>💬 Ask a Question</h2>
+        <div class="form-section">
+            <div class="input-group">
+                <input type="text" id="question" placeholder="Type your question here...">
+                <button id="ask-button" class="button-primary">Ask</button>
+            </div>
+        </div>
+
+        <div id="response-output" class="response-card hidden"></div>
+    </div>
+
+    <!-- Resume Analyzer Section -->
+    <div id="resume-analyzer" class="tab-content">
+        <h2>🔍 Resume Analysis Tool</h2>
+        <p>You can use this section to compare your resume with a job. Just enter the job description URL below and see the magic happen.</p>
+
+        <div class="form-section">
+            <div class="input-group">
+                <input type="url" id="job-url" placeholder="Paste job description URL here...">
+                <button id="analyze-button" class="button-primary">Analyze Resume</button>
+                <button id="open-url-button" class="button-secondary">Open URL</button>
+            </div>
+        </div>
+
+        <div id="job-analysis-results" class="job-results hidden"></div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const simpleAIButton = document.getElementById('simple-ai-tab');
+        const resumeAnalyzerButton = document.getElementById('resume-analyzer-tab');
+        const simpleAIContent = document.getElementById('simple-ai-search');
+        const resumeAnalyzerContent = document.getElementById('resume-analyzer');
+
+        const askButton = document.getElementById('ask-button');
+        const questionInput = document.getElementById('question');
+        const responseOutput = document.getElementById('response-output');
+
+        const analyzeButton = document.getElementById('analyze-button');
+        const jobUrlInput = document.getElementById('job-url');
+        const jobAnalysisResults = document.getElementById('job-analysis-results');
+        const openUrlButton = document.getElementById('open-url-button');
+
+        // Tab navigation
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+
+            if (tab === 'simple-ai') {
+                simpleAIContent.classList.add('active');
+                simpleAIButton.classList.add('active');
+            } else if (tab === 'resume-analyzer') {
+                resumeAnalyzerContent.classList.add('active');
+                resumeAnalyzerButton.classList.add('active');
+            }
+        }
+
+        simpleAIButton.addEventListener('click', () => switchTab('simple-ai'));
+        resumeAnalyzerButton.addEventListener('click', () => switchTab('resume-analyzer'));
+
+        // Fetch files used in the current model
+        fetch('/files-used')
+            .then(response => response.json())
+            .then(files => {
+                const fileList = document.getElementById('file-list');
+                fileList.innerHTML = '';
+                files.forEach(file => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `<a href="/data/${file}" target="_blank">${file}</a>`;
+                    fileList.appendChild(listItem);
+                });
+            });
+
+        // Ask a question
+        askButton.addEventListener('click', async () => {
+            const question = questionInput.value;
+            if (!question) {
+                alert('Please enter a question.');
+                return;
+            }
+
+            responseOutput.textContent = 'Loading...';
+            responseOutput.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question }),
+                });
+                const result = await response.json();
+                responseOutput.innerHTML = `<p>${result.response || 'No response received.'}</p>`;
+            } catch {
+                responseOutput.textContent = '❌ Error retrieving response.';
+            }
+        });
+
+        // Analyze a job
+        analyzeButton.addEventListener('click', async () => {
+            const jobUrl = jobUrlInput.value;
+            if (!jobUrl) {
+                alert('Please enter a job URL.');
+                return;
+            }
+
+            jobAnalysisResults.innerHTML = 'Analyzing...';
+            jobAnalysisResults.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/analyze-job', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: jobUrl }),
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    const details = result.job_details;
+                    jobAnalysisResults.innerHTML = `
+                        <h3>Job Summary</h3>
+                        <p><strong>Company:</strong> ${details.company_name || 'Not available'}</p>
+                        <p><strong>Job Title:</strong> ${details.job_title || 'Not available'}</p>
+                        <p><strong>Location:</strong> ${details.location || 'Not available'}</p>
+                        <p><strong>Pay Range:</strong> ${details.pay_range || 'Not available'}</p>
+                        <p><strong>Required Skills:</strong> ${details.required_skills || 'Not available'}</p>
+                    `;
+                } else {
+                    jobAnalysisResults.textContent = result.message || '❌ Error analyzing job.';
+                }
+            } catch {
+                jobAnalysisResults.textContent = '❌ Error analyzing job.';
+            }
+        });
+
+        // Open job URL
+        openUrlButton.addEventListener('click', () => {
+            const jobUrl = jobUrlInput.value;
+            if (!jobUrl) {
+                alert('Please enter a valid URL.');
+                return;
+            }
+            window.open(jobUrl, '_blank');
+        });
+    });
+</script>
+
+</body>
+</html>

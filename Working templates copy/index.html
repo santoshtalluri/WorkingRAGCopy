@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Resume App</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>RAG Resume App</h1>
+
+    <h2>Ask a Question</h2>
+    <input type="text" id="questionInput" placeholder="Ask a question about your resume">
+    <button onclick="askQuestion()">Ask</button>
+
+    <h3>Response</h3>
+    <div id="response"></div>
+
+    <script>
+        function askQuestion() {
+            const question = document.getElementById('questionInput').value.trim();
+
+            if (!question) {
+                alert('Please enter a question before asking.');
+                return;
+            }
+
+            fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.response) {
+                    document.getElementById('response').innerText = data.response;
+                    console.log('Response from server:', data.response);
+                } else if (data.error) {
+                    alert('Error from server: ' + data.error);
+                } else {
+                    alert('Unexpected response from server');
+                }
+            })
+            .catch(error => {
+                alert('Error asking question: ' + error);
+                console.error('Error from server:', error);
+            });
+        }
+    </script>
+</body>
+</html>
